@@ -1,0 +1,5 @@
+interface Action {
+
+    toString(): string;
+
+}
