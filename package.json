@@ -1,0 +1,26 @@
+{
+  "name": "codingame-spring-challenge-2021",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gcampini/codingame-spring-challenge-2021.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gcampini/codingame-spring-challenge-2021/issues"
+  },
+  "homepage": "https://github.com/gcampini/codingame-spring-challenge-2021#readme",
+  "devDependencies": {
+    "ts-loader": "^9.1.2",
+    "typescript": "^4.2.4",
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.6.0"
+  }
+}
