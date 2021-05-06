@@ -1,1 +1,3 @@
-console.log('noob');
+import readline from './readline';
+
+// const input = readline();
