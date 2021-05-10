@@ -1,6 +1,9 @@
-export default class CompleteAction implements Action {
+import Action from "./Action";
+
+export default class CompleteAction extends Action {
 
     constructor(public index: number) {
+        super();
     }
 
     public toString() {

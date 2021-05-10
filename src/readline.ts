@@ -1,2 +1,3 @@
 /* @ts-ignore */
-export default function readline(): string;
+const rl = readline;
+export default rl;

@@ -1,5 +1,5 @@
-interface Action {
+export default abstract class Action {
 
-    toString(): string;
+    public abstract toString(): string;
 
 }
