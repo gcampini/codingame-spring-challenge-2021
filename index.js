@@ -1,48 +1,99 @@
+class Parameters {
+
+}
 
 class Game {
     constructor() {
-        this.round = 0
-        this.nutrients = 0
-        this.cells = []
-        this.possibleActions = []
-        this.trees = []
-        this.mySun = 0
-        this.myScore = 0
-        this.opponentsSun = 0
-        this.opponentScore = 0
-        this.opponentIsWaiting = 0
+        this.round = 0;
+        this.nutrients = 0;
+
+        /** @type {Cell[]} */
+        this.cells = [];
+
+        /** @type {Action[]} */
+        this.possibleActions = [];
+
+        /** @type {Tree[]} */
+        this.trees = [];
+        this.mySun = 0;
+        this.myScore = 0;
+        this.opponentsSun = 0;
+        this.opponentScore = 0;
+        this.opponentIsWaiting = 0;
     }
 
-    debug(){
-        console.error("[DEBUG] possibleActions : ", this.possibleActions);
-        console.error("[DEBUG][ACTION][GROW] : ",  this.possibleActions.filter(action => action.type === Action.GROW));
-        console.error("[DEBUG] trees : ", this.trees);
-        console.error("------------------------------------------------")
+    /**
+     * @return {boolean|Action}
+     */
+    getWorthCompleteAction(){
+        const treesToComplete = this.possibleActions.filter(action => action.type === Action.COMPLETE);
+        if(treesToComplete.length === 0)
+            return false;
+        return treesToComplete.sort((a, b) => {
+            const treeA = this.myTrees.find(value => value.cellIndex === a.targetCell.index);
+            const treeB = this.myTrees.find(value => value.cellIndex === b.targetCell.index);
+
+            return (b.targetCell.richness - a.targetCell.richness) + (treeB.size - treeA.size);
+        })[0];
+    }
+
+    /**
+     * @return {boolean|Action}
+     */
+    getWorthGrowAction(){
+        const treesToGrow = this.possibleActions.filter(action => action.type === Action.GROW);
+        if (treesToGrow.length > 0){
+            const treesToGrowWorth = treesToGrow.sort((a, b) => {
+                const treeA = this.myTrees.find(value => value.cellIndex === a.targetCell.index);
+                const treeB = this.myTrees.find(value => value.cellIndex === b.targetCell.index);
+
+                return (b.targetCell.richness - a.targetCell.richness) + (treeB.size - treeA.size);
+            });
+            return treesToGrowWorth[0];
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @return {boolean|Action}
+     */
+    getWorthSeedAction(){
+        if(game.day < 3 && this.myTrees.filter(tree => tree.size === 0).length === 0)
+            return false;
+
+        const seeds = this.possibleActions
+            .filter(action => action.type === Action.SEED)
+            .sort((a, b) => {
+                return b.targetCell.attraction() - a.targetCell.attraction();
+            });
+
+        if(seeds.length === 0)
+            return false;
+
+        return seeds[0];
     }
 
     getNextAction() {
-        this.debug();
-        const wait = this.possibleActions[0];
-        const treesToComplete = this.possibleActions.filter(action => action.type === Action.COMPLETE && action.targetCell.richness >= 2);
-        if(treesToComplete.length > 1)
-            return treesToComplete[0];
+        this.myTrees = this.trees.filter(value => value.isMine && !value.isDormant);
+        game.cells.forEach(value => {
+            console.error("index : ", value.index, "shadow attraction", value.shadowImpact())
+        })
 
-        /* todo : faire grandir un arbre pour envoyer les graines dans les cellules à 3 points */
-        const treesToGrow = this.possibleActions.filter(action => action.type === Action.GROW);
-        if(treesToGrow.length > 0)
-            return treesToGrow[0];
+        const completeAction = this.getWorthCompleteAction();
+        if(completeAction)
+            return completeAction;
 
-        const seeds = this.possibleActions.filter(action => action.type === Action.SEED);
-        if(seeds.length > 0){
-            /* todo worthSeeds can be performed by a BFT to reach the neighbors */
-            const worthSeeds = seeds.sort(action => {
-                action.targetCell.richness >= 2
-            });
-            if(worthSeeds.length > 0)
-                return worthSeeds[0];
-        }
+        const growAction = this.getWorthGrowAction();
+        if(growAction)
+            return growAction;
 
-        return wait;
+        const seedAction = this.getWorthSeedAction();
+        if(seedAction)
+            return seedAction;
+
+        return this.possibleActions[0];
     }
 }
 const game = new Game();
@@ -52,6 +103,56 @@ class Cell {
         this.index = index
         this.richness = richness
         this.neighbors = neighbors
+    }
+
+    tree(){
+        this.tree = game.trees.find(tree => tree.cellIndex === this.index);
+        return this.tree;
+    }
+
+    /**
+     *
+     * @param {number} direction
+     * @return {Cell[]}
+     */
+    ray(direction){
+        const cells = [];
+        let current = this;
+
+        while (current){
+            cells.push(current);
+            if(current.neighbors[direction] !== -1){
+                current = game.cells[current.neighbors[direction]];
+            }else{
+                current = null;
+            }
+        }
+        return cells;
+    }
+
+    attraction(){
+        let attraction = 0;
+        if(this.tree())
+            return attraction;
+
+        attraction += (this.richness / 3) * 3;
+        attraction += this.shadowImpact()
+        return attraction;
+    }
+
+    shadowImpact(){
+        let total = 0;
+        let subtotal = 0;
+        const neighbors = this.ray(game.day % 6);
+        for (let i = 0; i < neighbors.length; i++) {
+            const tree = neighbors[i].tree()
+            if (!tree)
+                continue;
+            // Ombre qui affecte cette cell
+            subtotal -= Math.min(4, 4 + tree.size - i) / 4;
+        }
+        total += (subtotal / neighbors.length + 1) / 2;
+        return total / 6;
     }
 }
 
@@ -109,8 +210,9 @@ for (let i = 0; i < numberOfCells; i++) {
     const neigh3 = parseInt(inputs[5]);
     const neigh4 = parseInt(inputs[6]);
     const neigh5 = parseInt(inputs[7]);
+    let worth = 0;
     game.cells.push(
-        new Cell(index, richness, [neigh0, neigh1, neigh2, neigh3, neigh4, neigh5])
+        new Cell(index, richness, [neigh0, neigh1, neigh2, neigh3, neigh4, neigh5], worth)
     )
 }
 
@@ -148,7 +250,5 @@ while (true) {
         game.possibleActions.push(Action.parse(possibleAction))
     }
 
-    game.round++;
-    const action = game.getNextAction();
-    console.log(action.toString());
+    console.log(game.getNextAction().toString());
 }
