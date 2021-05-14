@@ -1,15 +1,18 @@
-import Cell from "./Cell";
-import Game from "./Game";
-
 export default class Tree {
+    cellIndex: number;
+    size: number;
+    isMine: boolean;
+    isDormant: boolean;
 
-    public static readonly growCostBySize = [1, 3, 7];
-
-    constructor(public cell: Cell, public size: number, public isMine: boolean, public isDormant: boolean) {
+    constructor(
+        cellIndex: number,
+        size: number,
+        isMine: boolean,
+        isDormant: boolean
+    ) {
+        this.cellIndex = cellIndex;
+        this.size = size;
+        this.isMine = isMine;
+        this.isDormant = isDormant;
     }
-
-    public growCost(game: Game): number {
-        return Tree.growCostBySize[this.size] + game.trees.filter(tree => tree.size === this.size && tree.isMine === this.isMine).length;
-    }
-
 }

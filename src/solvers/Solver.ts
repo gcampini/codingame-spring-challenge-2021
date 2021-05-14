@@ -1,4 +1,4 @@
-import Action from "../model/actions/Action";
+import Action from "../model/Action";
 import Game from "../model/Game";
 
 export default interface Solver {

@@ -1,29 +1,37 @@
-import Action from './actions/Action';
+import Action from './Action';
 import Cell from './Cell';
 import Tree from './Tree';
 
 export default class Game {
+    round: number;
+    nutrients: number;
+    cells: Cell[];
+    possibleActions: Action[];
+    trees: Tree[];
+    mySun: number;
+    myScore: number;
+    opponentsSun: number;
+    opponentScore: number;
+    opponentIsWaiting: boolean;
 
-    constructor(
-        public round: number,
-        public nutrients: number,
-        public actions: Action[],
-        public cells: Cell[],
-        public trees: Tree[],
-        public mySun: number,
-        public myScore: number,
-        public opponentsSun: number,
-        public opponentScore: number,
-        public opponentIsWaiting: boolean
-    ) {
+    day: number;
+    opponentSun: number;
+
+    constructor() {
+        this.round = 0;
+        this.nutrients = 0;
+        this.cells = [];
+        this.possibleActions = [];
+        this.trees = [];
+        this.mySun = 0;
+        this.myScore = 0;
+        this.opponentsSun = 0;
+        this.opponentScore = 0;
+        this.opponentIsWaiting = false;
     }
 
-    get sunDirection(): number {
-        return this.round % 6;
+    getNextAction() {
+        // TODO: write your algorithm here
+        return this.possibleActions[0];
     }
-
-    get myTrees(): Tree[] {
-        return this.trees.filter(t => t.isMine);
-    }
-
 }
